@@ -12,3 +12,4 @@ supabase/.branches
 supabase/.temp
 .vercel
 .next-*
+courtside-source.tar.gz
