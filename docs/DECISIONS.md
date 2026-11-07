@@ -62,3 +62,13 @@ The specification's MUSTs are implemented as written unless listed here. Each en
 | --- | --- | --- |
 | 30 | A signed-in non-admin reaching `/admin` is sent to `/auth/signout?error=not_admin` (a Route Handler that signs out and redirects to `/login?error=not_admin`). | Server Components cannot clear cookies; the layout check itself remains server-side as required. |
 | 31 | `useRealtimeQuery` refetches the affected query on every change (debounced) instead of patching rows in place. | Simpler and always consistent with RLS (voided rows disappear for visitors). Tables are small by design (≤ 10 teams, ≤ 1,000 players, paginated). |
+| 32 | After sign-in the login form does a full page navigation (`window.location.assign`) and the navbar/footer links to `/admin` are not prefetched. | In production Next.js prefetches links; a signed-out prefetch of `/admin` (a redirect to `/login`) was cached and reused after sign-in. Found by the production-mode check. |
+| 33 | Time zones are validated by asking `Intl.DateTimeFormat` to format with the zone rather than by membership in `Intl.supportedValuesOf('timeZone')`. | Chromium reports canonical aliases (`Asia/Calcutta`) that the list does not contain; Postgres accepts both. |
+
+## Local Supabase configuration
+
+| # | Decision | Reason |
+| --- | --- | --- |
+| 34 | `supabase/config.toml`: `[auth] enable_signup = false`, `[auth.email] enable_signup = true`. | In the CLI config the `[auth.email]` flag enables the email *provider* (password sign-in); turning it off blocks admin sign-in. Public sign-up is disabled by the top-level flag (D6). In the hosted dashboard the equivalent is: Email provider on, "Allow new users to sign up" off. |
+| 35 | `NEXT_DIST_DIR` (optional) sets Next.js's build directory. | Lets a production build/server run next to a dev server (used for the production-mode verification). |
+| 36 | Demo data lives in `scripts/seed.ts`; `supabase/seed.sql` is intentionally empty. | `supabase db reset` must give the clean database the test suites expect; the seed refuses to run against a non-local URL. |

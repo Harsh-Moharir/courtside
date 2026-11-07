@@ -1,0 +1,2 @@
+-- Demo data lives in scripts/seed.ts (pnpm seed --stage=league); it is never applied in production.
+-- This file is intentionally empty so 'supabase db reset' gives a clean database for tests.

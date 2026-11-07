@@ -15,24 +15,29 @@ test('scoring survives a network drop and lands each tap exactly once', async ({
   const fixtureId = created.fixture.id;
   await rpcOk(admin, 'start_match', { p_fixture_id: fixtureId });
 
-  await login(page);
-  await page.goto(`/admin/live/${fixtureId}`);
-  const plus2 = page.getByRole('button', { name: new RegExp(`^${home!.name} plus 2`) });
-  await expect(plus2).toBeEnabled();
+  try {
+    await login(page);
+    await page.goto(`/admin/live/${fixtureId}`);
+    const plus2 = page.getByRole('button', { name: new RegExp(`^${home!.name} plus 2`) });
+    await expect(plus2).toBeEnabled();
 
-  await context.setOffline(true);
-  await plus2.click();
-  await plus2.click();
-  await expect(page.getByText(/Not saved: 2 actions pending/)).toBeVisible({ timeout: 15000 });
-  await context.setOffline(false);
-  await page.getByRole('button', { name: 'Retry' }).click();
-  await expect(page.getByText(/Not saved/)).toBeHidden({ timeout: 15000 });
+    await context.setOffline(true);
+    await plus2.click();
+    await plus2.click();
+    await expect(page.getByText(/Not saved: 2 actions pending/)).toBeVisible({ timeout: 15000 });
+    await context.setOffline(false);
+    await page.getByRole('button', { name: 'Retry' }).click();
+    await expect(page.getByText(/Not saved/)).toBeHidden({ timeout: 15000 });
 
-  const { data: ms } = await admin.from('match_states').select('home_score').eq('fixture_id', fixtureId).single();
-  expect(ms!.home_score).toBe(4);
-  const { count } = await admin.from('live_scoring_events').select('id', { count: 'exact', head: true }).eq('fixture_id', fixtureId).eq('event_type', 'points');
-  expect(count).toBe(2);
-
-  await rpcOk(admin, 'abandon_match', { p_fixture_id: fixtureId, p_reason: 'E2E cleanup' });
-  await rpcOk(admin, 'delete_fixture', { p_fixture_id: fixtureId });
+    const score = async () => (await admin.from('match_states').select('home_score').eq('fixture_id', fixtureId).maybeSingle()).data?.home_score;
+    const pointEvents = async () =>
+      (await admin.from('live_scoring_events').select('id', { count: 'exact', head: true }).eq('fixture_id', fixtureId).eq('event_type', 'points')).count;
+    await expect.poll(score, { timeout: 15000 }).toBe(4);
+    await page.waitForTimeout(2000); // nothing lands twice afterwards
+    expect(await score()).toBe(4);
+    expect(await pointEvents()).toBe(2);
+  } finally {
+    await rpcOk(admin, 'abandon_match', { p_fixture_id: fixtureId, p_reason: 'E2E cleanup' }).catch(() => undefined);
+    await rpcOk(admin, 'delete_fixture', { p_fixture_id: fixtureId }).catch(() => undefined);
+  }
 });

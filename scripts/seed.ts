@@ -70,7 +70,7 @@ async function main() {
       const sec = r() > 0.4 ? POS[(i + 1 + Math.floor(r() * 3)) % 5] : null;
       return {
         row_number: i + 1,
-        full_name: i === 7 ? 'आदित्य कुलकर्णी' : i === 13 ? 'José Álvarez' : `${FIRST[i % 20]} ${LAST[(i * 7) % 20]}`,
+        full_name: i === 7 ? 'आदित्य कुलकर्णी' : i === 13 ? 'José Álvarez' : `${FIRST[i % 20]} ${LAST[(i * 7 + Math.floor(i / 20) * 3) % 20]}`,
         primary_position: primary,
         secondary_position: sec === primary ? null : sec,
         age: 18 + Math.floor(r() * 16),
@@ -162,7 +162,7 @@ async function main() {
       }
       const { error: annErr } = await supabase.from('announcements').insert([
         { tournament_id: tid, title: 'Welcome to the Courtside Premier League', body: 'Eight teams, one trophy. Follow every auction bid and every basket live on this site.\nTickets are free for all league matches.', is_pinned: true },
-        { tournament_id: tid, title: 'Court B lights upgraded', body: 'Evening games on Court B now start on time after the lighting upgrade.' },
+        { tournament_id: tid, title: 'Court B lights upgraded', body: 'Evening games on Court B now start on time after the lighting upgrade.', is_pinned: false },
       ]);
       if (annErr) throw new Error(`announcements: ${annErr.message}`);
       console.log(`✔ league: ${fixtures?.length} fixtures, ${played} played, 1 live`);

@@ -68,11 +68,14 @@ test('full tournament: teams → players → auction → rosters → fixtures �
   // ---- Two icon players per team (UI)
   for (const id of teamIds) {
     await page.goto(`/admin/teams/${id}`);
-    for (const slot of [1, 2]) {
-      await page.getByRole('button', { name: 'Assign' }).first().click();
-      const idlg = page.getByRole('dialog', { name: `Icon player ${slot}` });
+    const assign = page.getByRole('button', { name: 'Assign', exact: true });
+    await expect(assign).toHaveCount(2);
+    for (const left of [1, 0]) {
+      await assign.first().click();
+      const idlg = page.getByRole('dialog', { name: /Icon player [12]/ });
       await idlg.getByRole('button', { name: /Import Player/ }).first().click();
       await expect(idlg).toBeHidden({ timeout: 15000 });
+      await expect(assign).toHaveCount(left, { timeout: 15000 });
     }
   }
   const { count: icons } = await admin.from('players').select('id', { count: 'exact', head: true }).eq('status', 'icon');
@@ -120,13 +123,13 @@ test('full tournament: teams → players → auction → rosters → fixtures �
   for (const f of fin!) {
     const spent = txns!.filter((x) => x.team_id === f.team_id && x.status === 'active').reduce((s, x) => s + Number(x.price), 0);
     expect(Number(f.purse_spent)).toBe(spent);
-    expect(f.squad_count).toBe(6);
   }
+  expect(fin!.map((f) => f.squad_count).sort()).toEqual([5, 6, 6, 7]); // 2 icons each + 4/5/4/3 purchases
   expect(txns!.map((x) => x.purchase_order).sort((a, b) => a - b)).toEqual(Array.from({ length: 16 }, (_, i) => i + 1));
   await page.goto(`/teams/${teamIds[1]}`);
   await expect(page.getByText(/Import Player/).first()).toBeVisible();
   await page.goto('/auction');
-  await expect(page.getByText('Smoke Hawks').first()).toBeVisible();
+  await expect(page.locator(':text("Smoke Hawks"):visible').first()).toBeVisible();
 
   // ---- Double round robin + auto-schedule (UI); 12.2 #4
   await page.goto('/admin/fixtures');

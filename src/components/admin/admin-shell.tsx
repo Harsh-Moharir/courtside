@@ -47,10 +47,7 @@ export function AdminShell({ email, children }: { email: string; children: React
             );
           })}
         </nav>
-        <span className="hidden max-w-[180px] shrink-0 truncate text-xs text-muted xl:inline" title={email}>
-          {email}
-        </span>
-        <button type="button" onClick={signOut} className="inline-flex min-h-[40px] items-center gap-1.5 rounded-btn border border-border px-3 text-sm font-semibold hover:border-accent">
+        <button type="button" onClick={signOut} title={`Signed in as ${email}`} className="inline-flex min-h-[40px] items-center gap-1.5 rounded-btn border border-border px-3 text-sm font-semibold hover:border-accent">
           <LogOut className="h-4 w-4" aria-hidden /> Sign out
         </button>
       </div>

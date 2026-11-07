@@ -60,6 +60,7 @@ export function Navbar({ initialLiveCount }: { initialLiveCount: number }) {
             <li key={l.href}>
               <Link
                 href={l.href}
+                prefetch={l.href === '/admin' ? false : undefined}
                 aria-current={isActive(pathname, l.href) ? 'page' : undefined}
                 className={cn(
                   'relative flex min-h-[44px] items-center gap-1.5 rounded-btn px-3 text-sm font-semibold transition',
@@ -96,6 +97,7 @@ export function Navbar({ initialLiveCount }: { initialLiveCount: number }) {
               <li key={l.href}>
                 <Link
                   href={l.href}
+                prefetch={l.href === '/admin' ? false : undefined}
                   className={cn(
                     'flex min-h-[56px] items-center gap-2 border-b border-border px-2 font-display text-2xl font-bold uppercase',
                     isActive(pathname, l.href) ? 'text-accent' : 'text-fg',

@@ -23,7 +23,7 @@ export function Footer() {
           <ul className="grid grid-cols-2 gap-x-8 gap-y-1 text-sm sm:grid-cols-3">
             {NAV_LINKS.map((l) => (
               <li key={l.href}>
-                <Link href={l.href} className="inline-flex min-h-[32px] items-center text-muted hover:text-accent">
+                <Link href={l.href} prefetch={l.href === '/admin' ? false : undefined} className="inline-flex min-h-[32px] items-center text-muted hover:text-accent">
                   {l.label}
                 </Link>
               </li>

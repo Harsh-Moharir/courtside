@@ -115,7 +115,7 @@ Open http://localhost:3000 (public site) and http://localhost:3000/admin (sign i
 | `pnpm dev` | Next.js dev server on :3000 |
 | `pnpm build && pnpm start` | Production build and server |
 | `pnpm typecheck` / `pnpm lint` | TypeScript strict check / ESLint |
-| `pnpm test` | Vitest unit tests (domain logic, parity with SQL when the local DB is up) |
+| `pnpm test` | Vitest unit tests (98; domain logic, parity with SQL when the local DB is up) |
 | `pnpm test:coverage` | Unit tests with coverage (domain logic ≥ 90%) |
 | `pnpm test:db` | pgTAP database tests (`supabase test db`) |
 | `pnpm test:concurrency` | Multi-connection concurrency tests against the local DB |

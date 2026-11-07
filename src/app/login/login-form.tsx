@@ -1,12 +1,10 @@
 'use client';
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { getBrowserClient } from '@/lib/supabase/browser';
 import { Button } from '@/components/ui/button';
 import { Field, Input } from '@/components/ui/field';
 
 export function LoginForm({ next, onSuccess }: { next?: string; onSuccess?: () => void }) {
-  const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -26,8 +24,8 @@ export function LoginForm({ next, onSuccess }: { next?: string; onSuccess?: () =
     }
     if (onSuccess) onSuccess();
     else {
-      router.replace(next ?? '/admin');
-      router.refresh();
+      // Full navigation: a client-side transition could reuse a prefetched (signed-out) redirect for /admin.
+      window.location.assign(next ?? '/admin');
     }
   }
 
