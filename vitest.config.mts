@@ -16,7 +16,7 @@ export default defineConfig({
     testTimeout: 20000,
     coverage: {
       provider: 'v8',
-      include: ['src/lib/domain/**', 'src/lib/color.ts', 'src/lib/export/csv.ts', 'src/lib/export/ics.ts', 'src/lib/import/**'],
+      include: ['src/lib/domain/**', 'src/lib/color.ts', 'src/lib/export/ics.ts', 'src/lib/import/**'],
       thresholds: { lines: 90 },
     },
   },

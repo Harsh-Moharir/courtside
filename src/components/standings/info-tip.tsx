@@ -26,7 +26,7 @@ export function InfoTip({ text, label = 'More information' }: { text: string; la
         onMouseLeave={() => setOpen(false)}
         onFocus={() => setOpen(true)}
         onBlur={() => setOpen(false)}
-        className="inline-flex h-6 w-6 items-center justify-center rounded-full text-muted hover:text-accent"
+        className="-m-2.5 inline-flex h-11 w-11 items-center justify-center rounded-full text-muted hover:text-accent"
       >
         <Info className="h-3.5 w-3.5" aria-hidden />
       </button>

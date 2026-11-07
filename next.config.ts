@@ -20,6 +20,8 @@ const csp = [
 ].join('; ');
 
 const nextConfig: NextConfig = {
+  // NEXT_DIST_DIR lets a production build run next to a dev server (CI and local checks).
+  distDir: process.env.NEXT_DIST_DIR || '.next',
   reactStrictMode: true,
   poweredByHeader: false,
   images: {

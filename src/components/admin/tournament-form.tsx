@@ -25,14 +25,27 @@ const schema = z.object({
 });
 type FormValues = z.infer<typeof schema>;
 
+const COMMON_ZONES = ['Asia/Kolkata', 'UTC', 'Asia/Dubai', 'Asia/Singapore', 'Europe/London', 'America/New_York'];
+
 function allZones(): string[] {
+  let list: string[] = [];
   try {
     const fn = (Intl as unknown as { supportedValuesOf?: (k: string) => string[] }).supportedValuesOf;
-    if (fn) return fn('timeZone');
+    if (fn) list = fn('timeZone');
   } catch {
     // ignore
   }
-  return ['Asia/Kolkata', 'UTC', 'Asia/Singapore', 'Europe/London', 'America/New_York'];
+  // Browsers may list legacy canonical names (Asia/Calcutta); keep the modern IANA names too.
+  return [...new Set([...COMMON_ZONES, ...list])];
+}
+
+function isValidZone(tz: string): boolean {
+  try {
+    new Intl.DateTimeFormat('en-US', { timeZone: tz });
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 export function TournamentForm({ tournament }: { tournament: Tables<'tournaments'> }) {
@@ -53,7 +66,7 @@ export function TournamentForm({ tournament }: { tournament: Tables<'tournaments
   const { register, handleSubmit, formState, setError, watch } = form;
 
   async function save(v: FormValues) {
-    if (!zones.includes(v.timezone) && v.timezone !== 'UTC') {
+    if (!isValidZone(v.timezone)) {
       setError('timezone', { message: 'Pick a time zone from the list' });
       return;
     }

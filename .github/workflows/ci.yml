@@ -1,0 +1,48 @@
+name: CI
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    env:
+      NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
+      NEXT_PUBLIC_SITE_URL: http://localhost:3000
+      BOOTSTRAP_ADMIN_EMAIL: admin@courtside.local
+      BOOTSTRAP_ADMIN_PASSWORD: ChangeMe-Local-123
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Typecheck
+        run: pnpm typecheck
+      - name: Lint
+        run: pnpm lint
+      - name: Start local Supabase
+        run: pnpm supabase start -x studio,imgproxy,edge-runtime,logflare,vector,supavisor,mailpit
+      - name: Export Supabase keys
+        run: |
+          pnpm -s supabase status -o env | sed -n 's/^ANON_KEY=/NEXT_PUBLIC_SUPABASE_ANON_KEY=/p; s/^SERVICE_ROLE_KEY=/SUPABASE_SERVICE_ROLE_KEY=/p' | tr -d '"' >> "$GITHUB_ENV"
+      - name: Unit tests (with coverage, incl. TypeScript/SQL parity)
+        run: pnpm test:coverage
+      - name: Database tests (pgTAP)
+        run: pnpm test:db
+      - name: Concurrency tests
+        run: pnpm test:concurrency
+      - name: Install Playwright browser
+        run: pnpm exec playwright install --with-deps chromium
+      - name: Build
+        run: pnpm build
+      - name: End-to-end tests
+        run: E2E_RESET=1 E2E_PROD=1 pnpm test:e2e
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: playwright-report

@@ -233,6 +233,9 @@ export function validateRows(rows: RawRow[], existingNamesLower: Iterable<string
     let value: PlayerInput | null = null;
     if (!parsed.success) {
       for (const issue of parsed.error.issues) {
+        // An unreadable position/height was already explained above.
+        if (issue.path[0] === 'primary_position' && pp === undefined) continue;
+        if (issue.path[0] === 'height_cm' && h === undefined) continue;
         if (!reasons.includes(issue.message)) reasons.push(issue.message);
       }
     } else if (reasons.length === 0) {
@@ -243,7 +246,7 @@ export function validateRows(rows: RawRow[], existingNamesLower: Iterable<string
     const warnings: string[] = [];
     if (existing.has(key)) warnings.push('A player with this name already exists');
     const firstSeen = seen.get(key);
-    if (firstSeen !== undefined) warnings.push(`Duplicate of row ${firstSeen} in this file`);
+    if (firstSeen !== undefined) warnings.push(`Duplicate of row ${firstSeen + 1} in this file`);
     else seen.set(key, idx + 1);
     return { rowNumber: idx + 1, raw, status: warnings.length ? ('warning' as const) : ('ok' as const), reasons: warnings, value };
   });
