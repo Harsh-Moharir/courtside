@@ -160,10 +160,11 @@ async function main() {
         await rpc('clock_control', { p_fixture_id: live.id, p_action: 'start' });
         await rpc('set_featured_fixture', { p_fixture_id: live.id });
       }
-      await supabase.from('announcements').insert([
+      const { error: annErr } = await supabase.from('announcements').insert([
         { tournament_id: tid, title: 'Welcome to the Courtside Premier League', body: 'Eight teams, one trophy. Follow every auction bid and every basket live on this site.\nTickets are free for all league matches.', is_pinned: true },
         { tournament_id: tid, title: 'Court B lights upgraded', body: 'Evening games on Court B now start on time after the lighting upgrade.' },
       ]);
+      if (annErr) throw new Error(`announcements: ${annErr.message}`);
       console.log(`✔ league: ${fixtures?.length} fixtures, ${played} played, 1 live`);
     } else {
       console.log('Fixtures already exist: skipping the league seed.');

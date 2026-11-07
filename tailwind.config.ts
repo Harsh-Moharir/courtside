@@ -5,19 +5,20 @@ const config: Config = {
   theme: {
     screens: { xs: '480px', sm: '640px', md: '768px', lg: '1024px', xl: '1440px' },
     extend: {
+      // Literal hex values (same as the CSS variables in globals.css) so opacity modifiers like bg-danger/15 work.
       colors: {
-        bg: 'var(--bg)',
-        surface: 'var(--surface)',
-        'surface-2': 'var(--surface-2)',
-        border: 'var(--border)',
-        fg: 'var(--text)',
-        muted: 'var(--muted)',
-        accent: 'var(--accent)',
-        'accent-contrast': 'var(--accent-contrast)',
-        success: 'var(--success)',
-        danger: 'var(--danger)',
-        warning: 'var(--warning)',
-        gold: 'var(--icon-gold)',
+        bg: '#0A0A0A',
+        surface: '#141414',
+        'surface-2': '#1C1C1C',
+        border: '#2A2A2A',
+        fg: '#FFFFFF',
+        muted: '#A3A3A3',
+        accent: '#F97316',
+        'accent-contrast': '#0A0A0A',
+        success: '#22C55E',
+        danger: '#EF4444',
+        warning: '#EAB308',
+        gold: '#FACC15',
       },
       fontFamily: {
         display: ['var(--font-display)', 'Barlow Condensed', 'Impact', 'sans-serif'],

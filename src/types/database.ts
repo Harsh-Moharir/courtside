@@ -219,9 +219,9 @@ isOneToOne: true
                   ]
                 },"auction_state": {
                   Row: {
-                    "between_rounds": boolean,"created_at": string,"current_lot_id": string | null,"current_round": number,"status": Database["public"]['Enums']["auction_status"],"tournament_id": string,"updated_at": string,"updated_by": string | null,"_require_live": undefined | null
+                    "between_rounds": boolean,"created_at": string,"current_lot_id": string | null,"current_round": number,"status": Database["public"]['Enums']["auction_status"],"tournament_id": string,"updated_at": string,"updated_by": string | null
                   }
-                  ComputedFields: "_require_live"
+                  ComputedFields: never
                   Insert: {
                     "between_rounds"?: boolean,"created_at"?: string,"current_lot_id"?: string | null,"current_round"?: number,"status"?: Database["public"]['Enums']["auction_status"],"tournament_id": string,"updated_at"?: string,"updated_by"?: string | null
                   }
@@ -918,7 +918,7 @@ isOneToOne: false
 { Args: { "p_ids": (string)[],"p_tid": string }; Returns: number
                            },
 "_require_live":
-{ Args: { "st": Omit<Database["public"]['Tables']["auction_state"]['Row'], Database["public"]['Tables']["auction_state"]['ComputedFields']> }; Returns: undefined
+{ Args: { "p_status": Database["public"]['Enums']["auction_status"] }; Returns: undefined
                            },
 "_require_tournament":
 { Args: Record<PropertyKey, never>; Returns: string

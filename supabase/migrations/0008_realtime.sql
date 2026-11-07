@@ -46,7 +46,9 @@ begin
     elsif f.proname in (
       -- public read helpers (used by RLS policies, views and spectators)
       'is_admin','active_tournament_id','server_time','team_max_bid','team_squad_count','bid_step',
-      'compute_standings','round_robin_pairs','playoff_template') then
+      'compute_standings','round_robin_pairs','playoff_template',
+      -- pure helpers called by row triggers that run as the invoking role (name cleaning, error raising)
+      'clean_text','raise_err') then
       execute format('grant execute on function %s to anon, authenticated', f.sig);
     end if;
   end loop;

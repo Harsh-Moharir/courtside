@@ -8,21 +8,9 @@ import { Dialog } from '@/components/ui/dialog';
 import { LoginForm } from '@/app/login/login-form';
 import { onSessionExpired } from '@/lib/session-events';
 import { getBrowserClient } from '@/lib/supabase/browser';
+import { ADMIN_LINKS } from './admin-links';
 
-export const ADMIN_LINKS = [
-  { href: '/admin', label: 'Dashboard' },
-  { href: '/admin/tournament', label: 'Tournament' },
-  { href: '/admin/teams', label: 'Teams' },
-  { href: '/admin/players', label: 'Players' },
-  { href: '/admin/auction', label: 'Auction' },
-  { href: '/admin/fixtures', label: 'Fixtures' },
-  { href: '/admin/live', label: 'Live scoring' },
-  { href: '/admin/standings-settings', label: 'Standings' },
-  { href: '/admin/playoffs', label: 'Playoffs' },
-  { href: '/admin/announcements', label: 'Announcements' },
-  { href: '/admin/admins', label: 'Admins' },
-  { href: '/admin/account', label: 'Account' },
-] as const;
+
 
 export function AdminShell({ email, children }: { email: string; children: React.ReactNode }) {
   const pathname = usePathname() ?? '/admin';
@@ -59,7 +47,7 @@ export function AdminShell({ email, children }: { email: string; children: React
             );
           })}
         </nav>
-        <span className="hidden truncate text-xs text-muted md:inline" title={email}>
+        <span className="hidden max-w-[180px] shrink-0 truncate text-xs text-muted xl:inline" title={email}>
           {email}
         </span>
         <button type="button" onClick={signOut} className="inline-flex min-h-[40px] items-center gap-1.5 rounded-btn border border-border px-3 text-sm font-semibold hover:border-accent">

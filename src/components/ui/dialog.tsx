@@ -1,7 +1,7 @@
 'use client';
 import * as RD from '@radix-ui/react-dialog';
 import { X } from 'lucide-react';
-import { useEffect, useRef } from 'react';
+import { useRef } from 'react';
 import { Button, type ButtonVariant } from './button';
 import { cn } from './cn';
 
@@ -12,6 +12,7 @@ export function Dialog({
   description,
   children,
   className,
+  initialFocus,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -19,12 +20,20 @@ export function Dialog({
   description?: React.ReactNode;
   children?: React.ReactNode;
   className?: string;
+  /** Element to focus when the dialog opens (instead of the first focusable element). */
+  initialFocus?: React.RefObject<HTMLElement | null>;
 }) {
   return (
     <RD.Root open={open} onOpenChange={onOpenChange}>
       <RD.Portal>
         <RD.Overlay className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm" />
         <RD.Content
+          onOpenAutoFocus={(e) => {
+            if (initialFocus?.current) {
+              e.preventDefault();
+              initialFocus.current.focus();
+            }
+          }}
           className={cn(
             'fixed left-1/2 top-1/2 z-50 max-h-[90dvh] w-[calc(100vw-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-card border border-border bg-surface p-5 shadow-2xl',
             className,
@@ -72,11 +81,8 @@ export function ConfirmDialog({
   confirmDisabled?: boolean;
 }) {
   const confirmRef = useRef<HTMLButtonElement>(null);
-  useEffect(() => {
-    if (open) setTimeout(() => confirmRef.current?.focus(), 30);
-  }, [open]);
   return (
-    <Dialog open={open} onOpenChange={onOpenChange} title={title} description={description}>
+    <Dialog open={open} onOpenChange={onOpenChange} title={title} description={description} initialFocus={confirmRef}>
       <form
         onSubmit={(e) => {
           e.preventDefault();

@@ -78,11 +78,12 @@ begin
   return st;
 end $$;
 
-create or replace function public._require_live(st public.auction_state) returns void
+-- Takes the status (not the row) so PostgREST does not expose it as a computed column of auction_state.
+create or replace function public._require_live(p_status public.auction_status) returns void
 language plpgsql security definer set search_path = public, pg_temp as $$
 begin
-  if st.status = 'paused' then perform public.raise_err('AUCTION_PAUSED', jsonb_build_object('status', st.status)); end if;
-  if st.status <> 'live' then perform public.raise_err('AUCTION_NOT_LIVE', jsonb_build_object('status', st.status)); end if;
+  if p_status = 'paused' then perform public.raise_err('AUCTION_PAUSED', jsonb_build_object('status', p_status)); end if;
+  if p_status <> 'live' then perform public.raise_err('AUCTION_NOT_LIVE', jsonb_build_object('status', p_status)); end if;
 end $$;
 
 -- Locks a lot of the tournament and checks it is live. Returns the lot.
@@ -202,7 +203,7 @@ begin
   perform public.require_admin();
   v_tid := public._require_tournament();
   st := public._lock_auction(v_tid);
-  perform public._require_live(st);
+  perform public._require_live(st.status);
   if st.current_lot_id is not null then perform public.raise_err('LIVE_LOT_EXISTS', jsonb_build_object('lot_id', st.current_lot_id)); end if;
   select * into s from public.auction_settings where tournament_id = v_tid;
   e := public._auction_event(v_tid, 'round_ended', null, null, null, null, format('Round %s ended', st.current_round),
@@ -306,7 +307,7 @@ begin
   perform public.require_admin();
   v_tid := public._require_tournament();
   st := public._lock_auction(v_tid);
-  perform public._require_live(st);
+  perform public._require_live(st.status);
   if st.current_lot_id is not null then perform public.raise_err('LOT_ALREADY_LIVE', jsonb_build_object('lot_id', st.current_lot_id)); end if;
   select * into p from public.players where id = p_player_id and tournament_id = v_tid for update;
   if not found then perform public.raise_err('NOT_FOUND', '{"entity":"player"}'); end if;
@@ -330,7 +331,7 @@ begin
   perform public.require_admin();
   v_tid := public._require_tournament();
   st := public._lock_auction(v_tid);
-  perform public._require_live(st);
+  perform public._require_live(st.status);
   if st.current_lot_id is not null then perform public.raise_err('LOT_ALREADY_LIVE', jsonb_build_object('lot_id', st.current_lot_id)); end if;
   select id into v_player from public.players
    where tournament_id = v_tid and status = 'available' and (p_position is null or primary_position = p_position)
@@ -350,7 +351,7 @@ begin
   v_tid := public._require_tournament();
   st := public._lock_auction(v_tid);
   -- 1 auction live
-  perform public._require_live(st);
+  perform public._require_live(st.status);
   -- 2 lot live
   l := public._lock_live_lot(v_tid, p_lot_id);
   -- 3 idempotent retry
@@ -400,7 +401,7 @@ begin
   perform public.require_admin();
   v_tid := public._require_tournament();
   st := public._lock_auction(v_tid);
-  perform public._require_live(st);
+  perform public._require_live(st.status);
   l := public._lock_live_lot(v_tid, p_lot_id);
   select * into b from public.auction_bids where lot_id = l.id and not is_voided order by sequence desc limit 1;
   if not found then perform public.raise_err('NOTHING_TO_UNDO', '{}'); end if;
@@ -424,7 +425,7 @@ begin
   perform public.require_admin();
   v_tid := public._require_tournament();
   st := public._lock_auction(v_tid);
-  perform public._require_live(st);
+  perform public._require_live(st.status);
   l := public._lock_live_lot(v_tid, p_lot_id);
   if l.current_bid is null or l.leading_team_id is null then perform public.raise_err('SOLD_WITHOUT_BID', '{}'); end if;
   select * into t from public.teams where id = l.leading_team_id for update;
@@ -461,7 +462,7 @@ begin
   perform public.require_admin();
   v_tid := public._require_tournament();
   st := public._lock_auction(v_tid);
-  perform public._require_live(st);
+  perform public._require_live(st.status);
   l := public._lock_live_lot(v_tid, p_lot_id);
   if l.bid_count > 0 and not coalesce(p_discard_bids, false) then
     perform public.raise_err('BIDS_EXIST', jsonb_build_object('bid_count', l.bid_count));
