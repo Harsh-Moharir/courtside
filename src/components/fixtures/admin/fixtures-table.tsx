@@ -191,7 +191,7 @@ export function AdminFixturesTable({
                             <PauseCircle className="h-4 w-4" />
                           </ActionButton>
                         )}
-                        <ActionButton label="Delete" danger disabled={!editable || f.stage !== 'league'} onClick={() => onAction('delete', f)}>
+                        <ActionButton label={f.stage === 'playoff' ? 'Reset playoff match' : 'Delete'} danger onClick={() => onAction('delete', f)}>
                           <Trash2 className="h-4 w-4" />
                         </ActionButton>
                         <Link

@@ -72,3 +72,11 @@ The specification's MUSTs are implemented as written unless listed here. Each en
 | 34 | `supabase/config.toml`: `[auth] enable_signup = false`, `[auth.email] enable_signup = true`. | In the CLI config the `[auth.email]` flag enables the email *provider* (password sign-in); turning it off blocks admin sign-in. Public sign-up is disabled by the top-level flag (D6). In the hosted dashboard the equivalent is: Email provider on, "Allow new users to sign up" off. |
 | 35 | `NEXT_DIST_DIR` (optional) sets Next.js's build directory. | Lets a production build/server run next to a dev server (used for the production-mode verification). |
 | 36 | Demo data lives in `scripts/seed.ts`; `supabase/seed.sql` is intentionally empty. | `supabase db reset` must give the clean database the test suites expect; the seed refuses to run against a non-local URL. |
+
+## Admin force delete (added after delivery, at the owner's request)
+
+| # | Decision | Reason |
+| --- | --- | --- |
+| 37 | `delete_player`, `delete_team` and `delete_fixture` take `p_force boolean default false` (migration `0009`). Without it the original safety refusals apply; with it the row is deleted and everything depending on it is cleaned up in one transaction: a live lot is cancelled, sales are reversed and refunded, league matches of a deleted team are removed, playoff matches are reset to upcoming (a playoff match is never removed because it belongs to the bracket), then standings and the bracket are recalculated. | The owner wants full freedom to delete players, teams and matches. Spec 6.1/6.4/7.3 asked for refusals; keeping them as the default and making the override explicit preserves the protection against accidental clicks. |
+| 38 | Team force delete requires typing the team name in the UI; player and match force delete require ticking a box or a second confirmation. | Proportionate friction for irreversible actions. |
+| 39 | `auction_bids.team_id` and `auction_transactions.team_id` cascade on team delete; `auction_lots.leading_team_id` is set to null. | A deleted team takes its own (already reversed) auction records with it; lot snapshots and the auction event log remain. |

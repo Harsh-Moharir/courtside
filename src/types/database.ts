@@ -806,6 +806,9 @@ isOneToOne: false
 "_fmt_money":
 { Args: { "p_amount": number,"p_tid": string }; Returns: string
                            },
+"_force_cancel_live_lot":
+{ Args: { "p_reason": string,"p_tid": string }; Returns: undefined
+                           },
 "_is_on_live_lot":
 { Args: { "p_player_id": string }; Returns: boolean
                            },
@@ -1015,13 +1018,13 @@ isOneToOne: false
 { Args: { "p_allow_duplicate"?: boolean,"p_away": string,"p_home": string,"p_round"?: number,"p_scheduled_at"?: string,"p_venue"?: string }; Returns: Json
                            },
 "delete_fixture":
-{ Args: { "p_fixture_id": string }; Returns: Json
+{ Args: { "p_fixture_id": string,"p_force"?: boolean }; Returns: Json
                            },
 "delete_player":
-{ Args: { "p_player_id": string }; Returns: Json
+{ Args: { "p_force"?: boolean,"p_player_id": string }; Returns: Json
                            },
 "delete_team":
-{ Args: { "p_team_id": string }; Returns: Json
+{ Args: { "p_force"?: boolean,"p_team_id": string }; Returns: Json
                            },
 "end_auction_round":
 { Args: Record<PropertyKey, never>; Returns: Json

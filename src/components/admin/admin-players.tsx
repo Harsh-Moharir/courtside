@@ -55,6 +55,7 @@ export function AdminPlayers() {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [editing, setEditing] = useState<Tables<'players'> | null | 'new'>(null);
   const [toDelete, setToDelete] = useState<Row[] | null>(null);
+  const [forceDelete, setForceDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [bulkPriceOpen, setBulkPriceOpen] = useState(false);
 
@@ -135,7 +136,7 @@ export function AdminPlayers() {
     let deleted = 0;
     const refused: string[] = [];
     for (const r of toDelete) {
-      const res = await rpc<{ photo_path: string | null }>('delete_player', { p_player_id: r.id });
+      const res = await rpc<{ photo_path: string | null }>('delete_player', { p_player_id: r.id, p_force: forceDelete });
       if (res.ok) {
         deleted++;
         void removeObject('player-photos', res.data.photo_path);
@@ -143,6 +144,7 @@ export function AdminPlayers() {
     }
     setDeleting(false);
     setToDelete(null);
+    setForceDelete(false);
     setSelected(new Set());
     if (deleted) toast.success(`${deleted} player(s) deleted`);
     if (refused.length) toast.error(`${refused.length} refused. ${refused.slice(0, 3).join(' ')}${refused.length > 3 ? ' …' : ''}`, { duration: 10000 });
@@ -393,14 +395,46 @@ export function AdminPlayers() {
 
       <ConfirmDialog
         open={!!toDelete}
-        onOpenChange={(o) => !o && setToDelete(null)}
+        onOpenChange={(o) => {
+          if (!o) {
+            setToDelete(null);
+            setForceDelete(false);
+          }
+        }}
         title={toDelete && toDelete.length > 1 ? `Delete ${toDelete.length} players?` : `Delete ${toDelete?.[0]?.full_name ?? 'player'}?`}
-        description="Sold players, icon players and the player on the auction block cannot be deleted; they are reported as refused. Auction history keeps its own copy of names."
-        confirmLabel="Delete"
+        description="Auction history keeps its own copy of names and prices."
+        confirmLabel={forceDelete ? 'Delete anyway' : 'Delete'}
         confirmVariant="danger"
         loading={deleting}
         onConfirm={runDelete}
-      />
+      >
+        {(() => {
+          const locked = (toDelete ?? []).filter((r) => r.status === 'sold' || r.status === 'icon');
+          return (
+            <div className="space-y-3 text-sm">
+              {locked.length > 0 && (
+                <p className="rounded-btn border border-warning/40 bg-warning/10 px-3 py-2">
+                  {locked.length === 1 ? `${locked[0]!.full_name} is` : `${locked.length} of these players are`} sold or an icon player.
+                </p>
+              )}
+              <label className="flex items-start gap-3 rounded-btn border border-border bg-surface-2 p-3">
+                <input
+                  type="checkbox"
+                  className="mt-0.5 h-5 w-5 shrink-0 accent-[var(--accent)]"
+                  checked={forceDelete}
+                  onChange={(e) => setForceDelete(e.target.checked)}
+                />
+                <span>
+                  <span className="font-semibold">Delete even if sold, an icon, or on the auction block.</span>
+                  <span className="block text-muted">
+                    The sale is reversed and the team gets the money back; a live lot for the player is cancelled. Without this, such players are skipped.
+                  </span>
+                </span>
+              </label>
+            </div>
+          );
+        })()}
+      </ConfirmDialog>
 
       {bulkPriceOpen && <BulkBasePrice defaultBase={defaultBase} onClose={() => setBulkPriceOpen(false)} onDone={() => void refetch()} />}
     </div>

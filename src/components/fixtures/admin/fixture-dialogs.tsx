@@ -237,16 +237,19 @@ export function DeleteFixtureDialog({ fixture, onClose, onDone }: Base) {
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   useEffect(() => setError(null), [fixture]);
+  const playoff = fixture?.stage === 'playoff';
+  const played = !!fixture && (fixture.status === 'live' || fixture.status === 'completed');
+  const force = playoff || played;
   async function del() {
     if (!fixture) return;
     setPending(true);
-    const r = await rpc('delete_fixture', { p_fixture_id: fixture.id });
+    const r = await rpc<{ deleted?: string; reset?: string }>('delete_fixture', { p_fixture_id: fixture.id, p_force: force });
     setPending(false);
     if (!r.ok) {
       setError(r.message);
       return;
     }
-    toast.success(`M${fixture.match_number} deleted.`);
+    toast.success(r.data.reset ? `M${fixture.match_number} reset to upcoming.` : `M${fixture.match_number} deleted.`);
     onDone();
     onClose();
   }
@@ -254,15 +257,26 @@ export function DeleteFixtureDialog({ fixture, onClose, onDone }: Base) {
     <ConfirmDialog
       open={!!fixture}
       onOpenChange={(o) => !o && onClose()}
-      title="Delete fixture?"
-      description={fixture ? `${fixtureTitle(fixture)} will be removed permanently. Match numbers are not changed; use Renumber afterwards if you want no gaps.` : undefined}
-      confirmLabel="Delete"
+      title={playoff ? 'Reset playoff match?' : 'Delete match?'}
+      description={
+        fixture
+          ? playoff
+            ? `${fixtureTitle(fixture)} is part of the playoff bracket, so it is not removed: its score and result are cleared and it goes back to upcoming. Teams are filled in again from the standings and earlier results.`
+            : `${fixtureTitle(fixture)} will be removed permanently. Match numbers are not changed; use Renumber afterwards if you want no gaps.`
+          : undefined
+      }
+      confirmLabel={playoff ? 'Reset match' : force ? 'Delete anyway' : 'Delete'}
       confirmVariant="danger"
       loading={pending}
       onConfirm={del}
     >
+      {played && !playoff && (
+        <p className="rounded-btn border border-warning/40 bg-warning/10 px-3 py-2 text-sm">
+          This match is {fixture?.status === 'live' ? 'being played right now' : 'already played'}. Its score{fixture?.status === 'completed' ? ' and result' : ''} will be deleted and the points table recalculated.
+        </p>
+      )}
       {error && (
-        <p role="alert" className="text-sm text-red-300">
+        <p role="alert" className="mt-3 text-sm text-red-300">
           {error}
         </p>
       )}

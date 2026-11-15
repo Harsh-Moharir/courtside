@@ -82,6 +82,7 @@ Keyboard: **Z X C** = home +1 +2 +3, **B N M** = away +1 +2 +3, **Space** start/
 | Team did not turn up | **Forfeit** on the fixture: the other team wins 20–0 (configurable). |
 | Rain / power cut before a game | **Postpone** the fixture, later **Reschedule** it. |
 | "Session expired" box appears | Sign in again inside the box. Your screen (scores, bids) is kept; then retry the last action. |
+| Need to delete a sold player, a team with history, or a played match | Delete it as normal. When it has history the dialog explains what else changes and offers **Delete anyway** (for teams you type the team name to confirm). Sales are reversed and refunded, the team's matches are removed, and the points table and bracket recalculate. Playoff matches are reset to upcoming instead of removed. |
 | Points table looks wrong | *Admin → Standings → Rebuild standings*. It is always recomputed from the saved results. |
 | Two teams level on everything | Set a **manual tiebreak rank** under *Admin → Standings*. |
 

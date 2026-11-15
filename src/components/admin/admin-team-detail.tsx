@@ -43,11 +43,11 @@ interface Data {
 }
 
 const HISTORY_TEXT: Record<string, string> = {
-  fixtures: 'it already has fixtures',
-  'roster purchases': 'it has bought players',
-  'auction bids': 'it has auction bids',
-  'auction transactions': 'it has auction transactions',
-  'auction lots': 'it leads or led an auction lot',
+  fixtures: 'has matches',
+  'roster purchases': 'has bought players',
+  'auction bids': 'has auction bids',
+  'auction transactions': 'has auction purchases',
+  'auction lots': 'led an auction lot',
 };
 
 export function AdminTeamDetail({ teamId }: { teamId: string }) {
@@ -92,6 +92,8 @@ export function AdminTeamDetail({ teamId }: { teamId: string }) {
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [needsForce, setNeedsForce] = useState(false);
+  const [typedName, setTypedName] = useState('');
   const [purse, setPurse] = useState('');
   const [purseSaving, setPurseSaving] = useState(false);
 
@@ -165,20 +167,26 @@ export function AdminTeamDetail({ teamId }: { teamId: string }) {
   async function doDelete() {
     setDeleting(true);
     setDeleteError(null);
-    const r = await rpc<{ logo_path: string | null; owner_photo_path: string | null }>('delete_team', { p_team_id: teamId });
+    const r = await rpc<{ logo_path: string | null; owner_photo_path: string | null; fixtures_deleted?: number; players_released?: number }>('delete_team', {
+      p_team_id: teamId,
+      p_force: needsForce,
+    });
     setDeleting(false);
     if (!r.ok) {
       const reasons = Array.isArray(r.detail?.reasons) ? (r.detail?.reasons as string[]) : [];
-      const msg =
-        r.code === 'TEAM_HAS_HISTORY' && reasons.length
-          ? `This team cannot be deleted because ${reasons.map((x) => HISTORY_TEXT[x] ?? x).join(', ')}.`
-          : r.message;
-      setDeleteError(msg);
+      if (r.code === 'TEAM_HAS_HISTORY') {
+        setNeedsForce(true);
+        const parts = reasons.map((x) => HISTORY_TEXT[x] ?? x);
+        setDeleteError(parts.length ? `This team ${parts.length > 1 ? `${parts.slice(0, -1).join(', ')} and ${parts[parts.length - 1]}` : parts[0]}.` : r.message);
+        return;
+      }
+      setDeleteError(r.message);
       return;
     }
     void removeObject('team-logos', r.data.logo_path);
     void removeObject('team-logos', r.data.owner_photo_path);
-    toast.success(`${team.name} deleted`);
+    const extra = needsForce ? ` (${r.data.fixtures_deleted ?? 0} matches removed, ${r.data.players_released ?? 0} players returned to the pool)` : '';
+    toast.success(`${team.name} deleted${extra}`);
     setConfirmDelete(false);
     router.push('/admin/teams');
   }
@@ -423,19 +431,46 @@ export function AdminTeamDetail({ teamId }: { teamId: string }) {
         open={confirmDelete}
         onOpenChange={(o) => {
           setConfirmDelete(o);
-          if (!o) setDeleteError(null);
+          if (!o) {
+            setDeleteError(null);
+            setNeedsForce(false);
+            setTypedName('');
+          }
         }}
         title={`Delete ${team.name}?`}
-        description="The team, its owner and logo are removed and its icon players become available again. Teams with fixtures or auction history cannot be deleted."
-        confirmLabel="Delete team"
+        description="The team, its owner and logo are removed and its icon players become available again."
+        confirmLabel={needsForce ? 'Delete team and its history' : 'Delete team'}
         confirmVariant="danger"
         loading={deleting}
+        confirmDisabled={needsForce && typedName.trim() !== team.name}
         onConfirm={doDelete}
       >
         {deleteError && (
           <p role="alert" className="rounded-btn border border-danger/40 bg-danger/10 px-3 py-2 text-sm">
             {deleteError}
           </p>
+        )}
+        {needsForce && (
+          <div className="mt-3 space-y-3 text-sm">
+            <p className="font-semibold">You can still delete it. This will also:</p>
+            <ul className="list-disc space-y-1 pl-5 text-muted">
+              <li>reverse every player it bought (they go back to the auction pool as available) and remove its bids;</li>
+              <li>delete all of its league matches, including played results, and recalculate the points table;</li>
+              <li>clear it from any playoff match (those matches reset to upcoming).</li>
+            </ul>
+            <p className="text-muted">Auction history keeps a record of reversed sales. This cannot be undone.</p>
+            <label className="block">
+              <span className="mb-1 block font-medium">
+                Type <b className="text-fg">{team.name}</b> to confirm
+              </span>
+              <input
+                value={typedName}
+                onChange={(e) => setTypedName(e.target.value)}
+                autoComplete="off"
+                className="w-full min-h-[44px] rounded-btn border border-border bg-surface-2 px-3 py-2 text-fg focus:border-accent focus:outline-none"
+              />
+            </label>
+          </div>
         )}
       </ConfirmDialog>
     </div>
