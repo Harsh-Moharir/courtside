@@ -10,13 +10,15 @@ import { useTournament } from '@/components/providers/tournament-context';
 import { useRealtimeQuery } from '@/lib/realtime/use-realtime-query';
 import { getBrowserClient } from '@/lib/supabase/browser';
 import { publicUrl } from '@/lib/storage';
+import { DivisionSwitcher } from './division-switcher';
+import type { Division } from '@/lib/division';
 
 function isActive(path: string, href: string): boolean {
   if (href === '/') return path === '/';
   return path === href || path.startsWith(`${href}/`) || (href === '/live' && path.startsWith('/matches'));
 }
 
-export function Navbar({ initialLiveCount }: { initialLiveCount: number }) {
+export function Navbar({ initialLiveCount, divisions }: { initialLiveCount: number; divisions: Division[] }) {
   const pathname = usePathname() ?? '/';
   const t = useTournament();
   const [open, setOpen] = useState(false);
@@ -47,14 +49,15 @@ export function Navbar({ initialLiveCount }: { initialLiveCount: number }) {
       <nav className="mx-auto flex h-16 max-w-[1440px] items-center gap-4 px-4" aria-label="Main">
         <Link href="/" className="flex min-w-0 items-center gap-2.5">
           {logo ? (
-            <img src={logo} alt="" className="h-9 w-9 rounded-full object-contain" />
+            <img src={logo} alt="" className="h-9 w-9 shrink-0 rounded-full object-contain" />
           ) : (
-            <span className="flex h-9 w-9 items-center justify-center rounded-full bg-accent text-lg" aria-hidden>
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-accent text-lg" aria-hidden>
               🏀
             </span>
           )}
           <span className="truncate font-display text-xl font-extrabold uppercase tracking-tight">{t.name}</span>
         </Link>
+        <DivisionSwitcher divisions={divisions} />
         <ul className="ml-auto hidden items-center gap-1 lg:flex">
           {NAV_LINKS.map((l) => (
             <li key={l.href}>
@@ -92,6 +95,11 @@ export function Navbar({ initialLiveCount }: { initialLiveCount: number }) {
               <X className="h-5 w-5" />
             </button>
           </div>
+          {divisions.length > 1 && (
+            <div className="border-b border-border px-4 py-3">
+              <DivisionSwitcher divisions={divisions} size="lg" className="w-full justify-between [&>button]:flex-1" />
+            </div>
+          )}
           <ul className="flex-1 overflow-y-auto p-4">
             {NAV_LINKS.map((l) => (
               <li key={l.href}>

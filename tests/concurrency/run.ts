@@ -36,7 +36,7 @@ async function main() {
   const root = new pg.Client({ connectionString: DB_URL });
   await root.connect();
   const { rows: prev } = await root.query(`select id from public.tournaments where is_active`);
-  const previousActive: string | undefined = prev[0]?.id;
+  const previousActive: string[] = prev.map((r) => r.id as string);
   await root.query(`insert into auth.users (id, email, aud, role) values ($1, 'concurrency@test.local', 'authenticated', 'authenticated') on conflict do nothing`, [ADMIN_ID]);
   await root.query(`insert into public.administrators values ($1, 'concurrency@test.local') on conflict do nothing`, [ADMIN_ID]);
   await root.query(`update public.tournaments set is_active = false where is_active`);
@@ -113,7 +113,7 @@ async function main() {
   } finally {
     await Promise.all(conns.map((c) => c.end()));
     await root.query(`delete from public.tournaments where id = $1`, [tid]);
-    if (previousActive) await root.query(`update public.tournaments set is_active = true where id = $1`, [previousActive]);
+    if (previousActive.length) await root.query(`update public.tournaments set is_active = true where id = any($1::uuid[])`, [previousActive]);
     await root.query(`delete from public.administrators where user_id = $1`, [ADMIN_ID]);
     await root.query(`delete from auth.users where id = $1`, [ADMIN_ID]);
     await root.end();

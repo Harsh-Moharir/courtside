@@ -2,12 +2,14 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import type { Tables } from '@/types/database';
 import { getBrowserClient } from '@/lib/supabase/browser';
+import type { Division } from '@/lib/division';
 
 export type Tournament = Tables<'tournaments'>;
 
 const Ctx = createContext<Tournament | null>(null);
+const DivCtx = createContext<Division[]>([]);
 
-export function TournamentProvider({ initial, children }: { initial: Tournament | null; children: React.ReactNode }) {
+export function TournamentProvider({ initial, divisions = [], children }: { initial: Tournament | null; divisions?: Division[]; children: React.ReactNode }) {
   const [t, setT] = useState<Tournament | null>(initial);
   useEffect(() => {
     if (!initial) return;
@@ -22,10 +24,19 @@ export function TournamentProvider({ initial, children }: { initial: Tournament 
       void supabase.removeChannel(ch);
     };
   }, [initial]);
-  return <Ctx.Provider value={t}>{children}</Ctx.Provider>;
+  return (
+    <Ctx.Provider value={t}>
+      <DivCtx.Provider value={divisions}>{children}</DivCtx.Provider>
+    </Ctx.Provider>
+  );
 }
 
-/** The active tournament (D1). Falls back to safe defaults on an empty database. */
+/** All divisions of the event (Men, Women, …), in display order. */
+export function useDivisions(): Division[] {
+  return useContext(DivCtx);
+}
+
+/** The current division's tournament row (D1). Falls back to safe defaults on an empty database. */
 export function useTournament(): Tournament {
   const t = useContext(Ctx);
   return (
@@ -41,6 +52,9 @@ export function useTournament(): Tournament {
       venue_default: null,
       phase: 'setup',
       is_active: true,
+      division_label: 'Open',
+      is_default: true,
+      sort_order: 0,
       featured_fixture_id: null,
       champion_team_id: null,
       created_at: '',

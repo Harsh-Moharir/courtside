@@ -47,10 +47,11 @@ function rnd(seed: number) {
 }
 
 async function main() {
-  const { data: t } = await supabase.from('tournaments').select('*').eq('is_active', true).single();
-  if (!t) throw new Error('No active tournament: apply the migrations first.');
-  const tid = t.id;
-  const { count } = await supabase.from('teams').select('id', { count: 'exact', head: true });
+  // The service role bypasses the per-division read scoping, so every query below filters by tournament_id.
+  const { data: tidRaw } = await supabase.rpc('active_tournament_id');
+  const tid = tidRaw as unknown as string | null;
+  if (!tid) throw new Error('No active tournament: apply the migrations first.');
+  const { count } = await supabase.from('teams').select('id', { count: 'exact', head: true }).eq('tournament_id', tid);
   if ((count ?? 0) > 0) {
     console.log('Teams already exist: skipping the base seed (run `pnpm db:reset` for a clean database).');
   } else {
@@ -81,8 +82,8 @@ async function main() {
       };
     });
     await rpc('import_players', { p_rows: rows });
-    const { data: teams } = await supabase.from('teams').select('id').order('sort_order');
-    const { data: players } = await supabase.from('players').select('id').order('base_price', { ascending: false }).order('full_name');
+    const { data: teams } = await supabase.from('teams').select('id').eq('tournament_id', tid).order('sort_order');
+    const { data: players } = await supabase.from('players').select('id').eq('tournament_id', tid).order('base_price', { ascending: false }).order('full_name');
     let k = 0;
     for (const team of teams ?? []) {
       for (const slot of [1, 2]) {
@@ -93,13 +94,13 @@ async function main() {
   }
 
   if (stage === 'auction' || stage === 'league') {
-    const { data: st } = await supabase.from('auction_state').select('*').single();
+    const { data: st } = await supabase.from('auction_state').select('*').eq('tournament_id', tid).single();
     if (st?.status === 'not_started') {
       await rpc('save_auction_settings', { p_settings: { min_squad_size: 4, max_squad_size: 8 }, p_tiers: null });
       await rpc('start_auction_round', { p_force: true });
       const r = rnd(7);
-      const { data: pool } = await supabase.from('players').select('id').eq('status', 'available').order('full_name');
-      const { data: teams } = await supabase.from('teams').select('id').order('sort_order');
+      const { data: pool } = await supabase.from('players').select('id').eq('tournament_id', tid).eq('status', 'available').order('full_name');
+      const { data: teams } = await supabase.from('teams').select('id').eq('tournament_id', tid).order('sort_order');
       for (const p of pool ?? []) {
         const lot = (await rpc('open_lot', { p_player_id: p.id })).lot as { id: string; base_price: number };
         if (r() < 0.12) {
@@ -133,7 +134,7 @@ async function main() {
   }
 
   if (stage === 'league') {
-    const { count: fx } = await supabase.from('fixtures').select('id', { count: 'exact', head: true });
+    const { count: fx } = await supabase.from('fixtures').select('id', { count: 'exact', head: true }).eq('tournament_id', tid);
     if ((fx ?? 0) === 0) {
       await rpc('generate_league_fixtures', { p_format: 'double', p_shuffle_seed: 7, p_replace: false });
       const start = new Date(Date.now() - 21 * 86400000).toISOString().slice(0, 10);
@@ -141,7 +142,7 @@ async function main() {
         p_start_date: start, p_game_days: [1, 2, 3, 4, 5, 6, 7], p_first_start: '17:00', p_slot_minutes: 90,
         p_courts: ['Court A', 'Court B'], p_slots_per_day: 2, p_scope: 'unscheduled',
       });
-      const { data: fixtures } = await supabase.from('fixtures').select('id, match_number').eq('stage', 'league').order('match_number');
+      const { data: fixtures } = await supabase.from('fixtures').select('id, match_number').eq('tournament_id', tid).eq('stage', 'league').order('match_number');
       const r = rnd(99);
       const played = Math.floor((fixtures?.length ?? 0) * 0.6);
       for (const f of (fixtures ?? []).slice(0, played)) {

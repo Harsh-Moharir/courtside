@@ -695,14 +695,14 @@ isOneToOne: false
                   ]
                 },"tournaments": {
                   Row: {
-                    "banner_path": string | null,"champion_team_id": string | null,"created_at": string,"currency_symbol": string,"featured_fixture_id": string | null,"id": string,"is_active": boolean,"logo_path": string | null,"name": string,"phase": Database["public"]['Enums']["tournament_phase"],"slug": string,"tagline": string | null,"timezone": string,"updated_at": string,"venue_default": string | null
+                    "banner_path": string | null,"champion_team_id": string | null,"created_at": string,"currency_symbol": string,"division_label": string,"featured_fixture_id": string | null,"id": string,"is_active": boolean,"is_default": boolean,"logo_path": string | null,"name": string,"phase": Database["public"]['Enums']["tournament_phase"],"slug": string,"sort_order": number,"tagline": string | null,"timezone": string,"updated_at": string,"venue_default": string | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "banner_path"?: string | null,"champion_team_id"?: string | null,"created_at"?: string,"currency_symbol"?: string,"featured_fixture_id"?: string | null,"id"?: string,"is_active"?: boolean,"logo_path"?: string | null,"name": string,"phase"?: Database["public"]['Enums']["tournament_phase"],"slug": string,"tagline"?: string | null,"timezone"?: string,"updated_at"?: string,"venue_default"?: string | null
+                    "banner_path"?: string | null,"champion_team_id"?: string | null,"created_at"?: string,"currency_symbol"?: string,"division_label"?: string,"featured_fixture_id"?: string | null,"id"?: string,"is_active"?: boolean,"is_default"?: boolean,"logo_path"?: string | null,"name": string,"phase"?: Database["public"]['Enums']["tournament_phase"],"slug": string,"sort_order"?: number,"tagline"?: string | null,"timezone"?: string,"updated_at"?: string,"venue_default"?: string | null
                   }
                   Update: {
-                    "banner_path"?: string | null,"champion_team_id"?: string | null,"created_at"?: string,"currency_symbol"?: string,"featured_fixture_id"?: string | null,"id"?: string,"is_active"?: boolean,"logo_path"?: string | null,"name"?: string,"phase"?: Database["public"]['Enums']["tournament_phase"],"slug"?: string,"tagline"?: string | null,"timezone"?: string,"updated_at"?: string,"venue_default"?: string | null
+                    "banner_path"?: string | null,"champion_team_id"?: string | null,"created_at"?: string,"currency_symbol"?: string,"division_label"?: string,"featured_fixture_id"?: string | null,"id"?: string,"is_active"?: boolean,"is_default"?: boolean,"logo_path"?: string | null,"name"?: string,"phase"?: Database["public"]['Enums']["tournament_phase"],"slug"?: string,"sort_order"?: number,"tagline"?: string | null,"timezone"?: string,"updated_at"?: string,"venue_default"?: string | null
                   }
                   Relationships: [
                     {
@@ -1014,8 +1014,14 @@ isOneToOne: false
 "correct_score":
 { Args: { "p_away": number,"p_client_request_id"?: string,"p_fixture_id": string,"p_home": number,"p_reason": string }; Returns: Json
                            },
+"create_division":
+{ Args: { "p_label": string }; Returns: Json
+                           },
 "create_fixture":
 { Args: { "p_allow_duplicate"?: boolean,"p_away": string,"p_home": string,"p_round"?: number,"p_scheduled_at"?: string,"p_venue"?: string }; Returns: Json
+                           },
+"delete_division":
+{ Args: { "p_id": string }; Returns: Json
                            },
 "delete_fixture":
 { Args: { "p_fixture_id": string,"p_force"?: boolean }; Returns: Json
@@ -1025,6 +1031,9 @@ isOneToOne: false
                            },
 "delete_team":
 { Args: { "p_force"?: boolean,"p_team_id": string }; Returns: Json
+                           },
+"division_of":
+{ Args: { "p_id": string }; Returns: string
                            },
 "end_auction_round":
 { Args: Record<PropertyKey, never>; Returns: Json
@@ -1043,6 +1052,9 @@ isOneToOne: false
                            },
 "is_admin":
 { Args: Record<PropertyKey, never>; Returns: boolean
+                           },
+"list_divisions":
+{ Args: Record<PropertyKey, never>; Returns: Json
                            },
 "mark_sold":
 { Args: { "p_lot_id": string }; Returns: Json
@@ -1073,6 +1085,9 @@ isOneToOne: false
 "raise_err":
 { Args: { "p_code": string,"p_detail"?: Json }; Returns: undefined
                            },
+"read_scope":
+{ Args: Record<PropertyKey, never>; Returns: string
+                           },
 "reassign_player":
 { Args: { "p_player_id": string,"p_price": number,"p_reason": string,"p_to_team_id": string }; Returns: Json
                            },
@@ -1094,6 +1109,9 @@ isOneToOne: false
 "refresh_seeds":
 { Args: Record<PropertyKey, never>; Returns: Json
                            },
+"rename_division":
+{ Args: { "p_id": string,"p_label": string }; Returns: Json
+                           },
 "renumber_fixtures":
 { Args: Record<PropertyKey, never>; Returns: Json
                            },
@@ -1102,6 +1120,9 @@ isOneToOne: false
                            },
 "reopen_match":
 { Args: { "p_fixture_id": string,"p_reason": string }; Returns: Json
+                           },
+"request_division":
+{ Args: Record<PropertyKey, never>; Returns: string
                            },
 "require_admin":
 { Args: Record<PropertyKey, never>; Returns: undefined

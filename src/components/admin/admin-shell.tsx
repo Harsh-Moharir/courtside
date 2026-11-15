@@ -9,6 +9,8 @@ import { LoginForm } from '@/app/login/login-form';
 import { onSessionExpired } from '@/lib/session-events';
 import { getBrowserClient } from '@/lib/supabase/browser';
 import { ADMIN_LINKS } from './admin-links';
+import { DivisionSwitcher } from '@/components/layout/division-switcher';
+import { useDivisions, useTournament } from '@/components/providers/tournament-context';
 
 
 
@@ -16,6 +18,8 @@ export function AdminShell({ email, children }: { email: string; children: React
   const pathname = usePathname() ?? '/admin';
   const router = useRouter();
   const [expired, setExpired] = useState(false);
+  const divisions = useDivisions();
+  const current = useTournament();
 
   useEffect(() => onSessionExpired(() => setExpired(true)), []);
 
@@ -51,6 +55,15 @@ export function AdminShell({ email, children }: { email: string; children: React
           <LogOut className="h-4 w-4" aria-hidden /> Sign out
         </button>
       </div>
+      {divisions.length > 1 && (
+        <div className="mb-5 flex flex-wrap items-center gap-3 rounded-card border border-accent/40 bg-accent/10 px-4 py-2.5">
+          <span className="text-sm">
+            You are managing the <b className="font-display text-base uppercase text-accent">{current.division_label}</b> division. Teams, players, auction,
+            fixtures, scores and playoffs below belong to it.
+          </span>
+          <DivisionSwitcher divisions={divisions} className="ml-auto" />
+        </div>
+      )}
       {children}
       <Dialog
         open={expired}

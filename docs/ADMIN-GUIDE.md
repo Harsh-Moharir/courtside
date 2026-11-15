@@ -6,6 +6,10 @@ This guide is for the people running the event. No technical knowledge is needed
 
 ---
 
+## 0. Men and Women divisions
+
+The site has a **Men | Women** switch at the top. Each division has its own teams, players, auction (own purse and history), fixtures, live scores, points table, playoffs and champion. In the admin panel an orange bar always says which division you are managing; use the switch to change it before adding teams or running the auction. Divisions can be renamed, added (for example Under-18) or removed in **Admin → Tournament → Divisions**. The tournament name, logo and banner are shared. For the projector, open `/auction/display?division=women` (or `men`).
+
 ## 1. Before the event (a few days ahead)
 
 1. **Tournament details** — *Admin → Tournament*: name, tagline, logo, banner, time zone (default India), currency symbol (default ₹) and the default venue. The **Match rules** box sets quarters (default four 10-minute quarters), overtime length, shot clock (24 s), timeouts and the team-foul bonus.

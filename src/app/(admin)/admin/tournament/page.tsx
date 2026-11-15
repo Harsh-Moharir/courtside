@@ -4,6 +4,7 @@ import { getServerClient } from '@/lib/supabase/server';
 import { PageHeader } from '@/components/ui/card';
 import { TournamentForm } from '@/components/admin/tournament-form';
 import { MatchRulesForm } from '@/components/admin/match-rules-form';
+import { DivisionsManager } from '@/components/admin/divisions-manager';
 
 export const metadata: Metadata = { title: 'Tournament settings' };
 export const dynamic = 'force-dynamic';
@@ -15,7 +16,10 @@ export default async function TournamentSettingsPage() {
   const { data: rules } = await supabase.from('match_rules').select('*').eq('tournament_id', t.id).maybeSingle();
   return (
     <div>
-      <PageHeader title="Tournament" subtitle="Branding, time zone, currency and match rules" />
+      <PageHeader title="Tournament" subtitle="Divisions, branding, time zone, currency and match rules" />
+      <div className="mb-6">
+        <DivisionsManager />
+      </div>
       <div className="grid gap-6 xl:grid-cols-2">
         <TournamentForm tournament={t} />
         {rules && <MatchRulesForm rules={rules} />}
