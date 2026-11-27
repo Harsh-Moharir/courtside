@@ -13,3 +13,6 @@ supabase/.temp
 .vercel
 .next-*
 courtside-source.tar.gz
+
+# Guide exports for the organisers (contain the admin login email; the repo is public)
+docs/Courtside-Tournament-Guide.pdf
